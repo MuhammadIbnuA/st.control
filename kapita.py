@@ -7,8 +7,8 @@ import re
 def scrape_reviews_batched(app_id, lang='id', country='id', sort=Sort.NEWEST, filter_score_with=""):
     all_reviews_content = []
 
-    for _ in range(5):  # Scrape 9 batches (adjust as needed)
-        result, continuation_token = reviews(app_id, lang=lang, country=country, sort=sort, count=200, filter_score_with=filter_score_with)
+    for _ in range(1):  # Scrape 9 batches (adjust as needed)
+        result, continuation_token = reviews(app_id, lang=lang, country=country, sort=sort, count=250, filter_score_with=filter_score_with)
         
         # Append only review content to all_reviews_content
         all_reviews_content.extend(review['content'] for review in result)
