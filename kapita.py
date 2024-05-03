@@ -63,7 +63,7 @@ def main():
             reviews_with_keywords = filter_reviews_by_keywords(normalized_reviews_content, keywords)
 
             # Create a DataFrame with review numbers
-            df_reviews_with_keywords = pd.DataFrame({"Review Number": range(1, len(reviews_with_keywords)),
+            df_reviews_with_keywords = pd.DataFrame({"Review Number": range(1, len(reviews_with_keywords)+1),
                                                      "Review": (reviews_with_keywords)})
 
             # Display filtered reviews in a table
