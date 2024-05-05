@@ -6,12 +6,16 @@ import re
 
 def scrape_reviews_batched(app_id, lang='id', country='id', sort=Sort.NEWEST, filter_score_with=""):
     all_reviews_content = []
+    collected_review_ids = set()  # Set to store unique review IDs
 
-    for _ in range(1):  # Scrape 9 batches (adjust as needed)
+    for _ in range(9):  # Scrape 9 batches (adjust as needed)
         result, continuation_token = reviews(app_id, lang=lang, country=country, sort=sort, count=250, filter_score_with=filter_score_with)
         
         # Append only review content to all_reviews_content
-        all_reviews_content.extend(review['content'] for review in result)
+        for review in result:
+            if review['reviewId'] not in collected_review_ids:
+                all_reviews_content.append(review['content'])
+                collected_review_ids.add(review['reviewId'])
 
         if not continuation_token:
             break  # No more pages to fetch, exit loop
@@ -19,6 +23,8 @@ def scrape_reviews_batched(app_id, lang='id', country='id', sort=Sort.NEWEST, fi
         sleep(1)  # Delay for 1 second between batches
 
     return all_reviews_content
+
+
 
 def normalize_text(text):
     # Lowercase the text
