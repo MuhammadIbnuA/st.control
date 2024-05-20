@@ -6,7 +6,10 @@ import re
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from nltk.metrics import edit_distance
-import nltk
+from googletrans import Translator
+from textblob import TextBlob
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import matplotlib.pyplot as plt
 
 # Define keywords as a global variable
 keywords = ['Data', 'Rekaman', 'informasi', 'detail', 'fakta', 'angka', 'statistik',
@@ -124,43 +127,85 @@ def filter_reviews_by_keywords_jaccard(reviews, keywords, threshold):
 def filter_reviews_by_keywords_sorensen_dice(reviews, keywords, threshold):
     filtered_reviews = []
     similarity_scores = []
-    
+
     for review in reviews:
         # Normalize review text
         review = normalize_text(review)
-        
+
         # Calculate Sorensen-Dice similarity
         review_words = set(review.split())
         keyword_words = set(keywords)
-        sorensen_dice_similarity = 2 * len(review_words.intersection(keyword_words)) / (len(review_words) + len(keyword_words))
-        
+        dice_coefficient = 2 * len(review_words.intersection(keyword_words)) / (len(review_words) + len(keyword_words))
+
         # If Sorensen-Dice similarity is above the threshold, consider it a match
-        if sorensen_dice_similarity > threshold:
+        if dice_coefficient > threshold:
             filtered_reviews.append(review)
-            similarity_scores.append(sorensen_dice_similarity)
-    
+            similarity_scores.append(dice_coefficient)
+
     return filtered_reviews, similarity_scores
 
 def filter_reviews_by_keywords_levensthein(reviews, keywords, threshold):
     filtered_reviews = []
     similarity_scores = []
-    
+
     for review in reviews:
         # Normalize review text
         review = normalize_text(review)
-        
-        # Calculate Levenshtein distance
+
+        # Calculate Levenshtein distance-based similarity
         min_distance = min(edit_distance(review, keyword) for keyword in keywords)
-        
-        # Normalize distance by maximum possible distance
-        normalized_distance = 1 - min_distance / max(len(review), len(max(keywords, key=len)))
-        
-        # If normalized distance is above the threshold, consider it a match
-        if normalized_distance > threshold:
+        max_length = max(len(review),
+                        max(len(keyword) for keyword in keywords))
+        levenshtein_similarity = 1 - (min_distance / max_length)
+
+        # If Levenshtein similarity is above the threshold, consider it a match
+        if levenshtein_similarity > threshold:
             filtered_reviews.append(review)
-            similarity_scores.append(normalized_distance)
-    
+            similarity_scores.append(levenshtein_similarity)
+
     return filtered_reviews, similarity_scores
+
+def translate_reviews(reviews):
+    translator = Translator()
+    translated_reviews = [translator.translate(review, src='auto', dest='en').text for review in reviews]
+    return translated_reviews
+
+def analyze_sentiment(reviews):
+    sentiment_scores = [TextBlob(review).sentiment.polarity for review in reviews]
+    return sentiment_scores
+
+def classify_sentiment(score):
+    if score > 0.1:
+        return "Positive"
+    elif score < -0.1:
+        return "Negative"
+    else:
+        return "Neutral"
+
+def analyze_sentiment_vader(reviews):
+    analyzer = SentimentIntensityAnalyzer()
+    sentiment_scores = [analyzer.polarity_scores(review)["compound"] for review in reviews]
+    return sentiment_scores
+
+def classify_sentiment_vader(score):
+    if score >= 0.05:
+        return "Positive"
+    elif score <= -0.05:
+        return "Negative"
+    else:
+        return "Neutral"
+
+def scale_sentiment_to_five_levels(sentiment):
+    if sentiment <= -0.6:
+        return "Kurang Puas"
+    elif sentiment <= -0.2:
+        return "Tidak Puas"
+    elif sentiment <= 0.2:
+        return "Cukup Puas"
+    elif sentiment <= 0.6:
+        return "Puas"
+    else:
+        return "Sangat Puas"
 
 def main():
     st.title("App Reviews Keyword Filter")
@@ -185,7 +230,6 @@ def main():
     # Input for threshold
     threshold = st.number_input("Enter Threshold:", min_value=0.0, max_value=1.0, step=0.01, value=0.01)
 
-
     if app_id:
         reviews_content = scrape_reviews_batched(app_id, count, lang, country)
 
@@ -203,14 +247,60 @@ def main():
                 # Filter reviews using Levenshtein distance
                 reviews_with_keywords, similarity_scores = filter_reviews_by_keywords_levensthein(reviews_content, keywords, threshold)
 
-            # Create a DataFrame with review numbers, reviews, and similarity scores
-            df_reviews_with_keywords = pd.DataFrame({"Review Number": range(1, len(reviews_with_keywords)+1),
-                                                     "Review": reviews_with_keywords,
-                                                     "Similarity Score": similarity_scores})
+            # Translate the filtered reviews to English
+            translated_reviews = translate_reviews(reviews_with_keywords)
+            
+            # Perform sentiment analysis using TextBlob
+            textblob_sentiment_scores = analyze_sentiment(translated_reviews)
+
+            # Perform sentiment analysis using VADER
+            vader_sentiment_scores = analyze_sentiment_vader(translated_reviews)
+
+            # Classify sentiment based on TextBlob sentiment scores
+            textblob_sentiment_classes = [classify_sentiment(score) for score in textblob_sentiment_scores]
+
+            # Classify sentiment based on VADER sentiment scores
+            vader_sentiment_classes = [classify_sentiment_vader(score) for score in vader_sentiment_scores]
+
+            # Categorize sentiment scores into five levels
+            textblob_sentiment_levels = [scale_sentiment_to_five_levels(score) for score in textblob_sentiment_scores]
+            vader_sentiment_levels = [scale_sentiment_to_five_levels(score) for score in vader_sentiment_scores]
+
+            # Create a DataFrame with review numbers, reviews, similarity scores, sentiment scores, and sentiment classes
+            df_reviews_with_keywords = pd.DataFrame({
+                "Review Number": range(1, len(reviews_with_keywords) + 1),
+                "Original Review": reviews_with_keywords,
+                "Translated Review": translated_reviews,
+                "Similarity Score": similarity_scores,
+                "TextBlob Sentiment Score": textblob_sentiment_scores,
+                "TextBlob Sentiment Class": textblob_sentiment_classes,
+                "VADER Sentiment Score": vader_sentiment_scores,
+                "VADER Sentiment Class": vader_sentiment_classes,
+                "TextBlob Sentiment Level": textblob_sentiment_levels,
+                "VADER Sentiment Level": vader_sentiment_levels
+            })
 
             # Display filtered reviews in a table
             st.write("Reviews containing keywords:")
             st.write(df_reviews_with_keywords)
+
+            # Calculate and display the average sentiment score for TextBlob and VADER
+            avg_textblob_sentiment_score = sum(textblob_sentiment_scores) / len(textblob_sentiment_scores) if textblob_sentiment_scores else 0
+            avg_vader_sentiment_score = sum(vader_sentiment_scores) / len(vader_sentiment_scores) if vader_sentiment_scores else 0
+            st.write(f"Average TextBlob Sentiment Score: {avg_textblob_sentiment_score:.2f}")
+            st.write(f"Average VADER Sentiment Score: {avg_vader_sentiment_score:.2f}")
+
+            # Data visualization
+            st.write("Sentiment Distribution:")
+            sentiment_distribution = df_reviews_with_keywords["VADER Sentiment Level"].value_counts().reset_index()
+            sentiment_distribution.columns = ["Sentiment Level", "Count"]
+
+            fig, ax = plt.subplots()
+            ax.bar(sentiment_distribution["Sentiment Level"], sentiment_distribution["Count"], color=['red', 'orange', 'yellow', 'green', 'blue'])
+            ax.set_xlabel("Sentiment Level")
+            ax.set_ylabel("Count")
+            ax.set_title("Sentiment Level Distribution")
+            st.pyplot(fig)
 
     # Footer content
     footer = """
@@ -223,3 +313,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

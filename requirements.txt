@@ -3,3 +3,7 @@ streamlit
 google-play-scraper
 scikit-learn
 nltk
+googletrans==3.1.0a0
+matplotlib
+vaderSentiment
+textblob
