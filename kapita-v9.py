@@ -314,6 +314,22 @@ def main():
             ax_textblob.set_title("TextBlob Sentiment Level Distribution")
             st.pyplot(fig_textblob)
 
+            st.write("Histogram of TextBlob Sentiment Scores")
+            fig_textblob_hist, ax_textblob_hist = plt.subplots()
+            ax_textblob_hist.hist(df_reviews_with_keywords["TextBlob Sentiment Score"], bins=20, color='blue', edgecolor='black')
+            ax_textblob_hist.set_xlabel("TextBlob Sentiment Score")
+            ax_textblob_hist.set_ylabel("Frequency")
+            ax_textblob_hist.set_title("Distribution of TextBlob Sentiment Scores")
+            st.pyplot(fig_textblob_hist)
+
+            st.write("Histogram of VADER Sentiment Scores")
+            fig_vader_hist, ax_vader_hist = plt.subplots()
+            ax_vader_hist.hist(df_reviews_with_keywords["VADER Sentiment Score"], bins=20, color='green', edgecolor='black')
+            ax_vader_hist.set_xlabel("VADER Sentiment Score")
+            ax_vader_hist.set_ylabel("Frequency")
+            ax_vader_hist.set_title("Distribution of VADER Sentiment Scores")
+            st.pyplot(fig_vader_hist)
+
     # Footer content
     footer = """
     <footer style="background-color:#f8f9fa; padding:10px; position: fixed; left: 0; bottom: 0; width: 100%; text-align: center;">
