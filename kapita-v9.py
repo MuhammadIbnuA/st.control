@@ -291,7 +291,7 @@ def main():
             st.write(f"Average VADER Sentiment Score: {avg_vader_sentiment_score:.2f}")
 
             # Data visualization
-            st.write("Sentiment Distribution:")
+            st.write("Sentiment Distribution with VADER")
             sentiment_distribution = df_reviews_with_keywords["VADER Sentiment Level"].value_counts().reset_index()
             sentiment_distribution.columns = ["Sentiment Level", "Count"]
 
