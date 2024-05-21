@@ -295,6 +295,10 @@ def main():
             sentiment_distribution = df_reviews_with_keywords["VADER Sentiment Level"].value_counts().reset_index()
             sentiment_distribution.columns = ["Sentiment Level", "Count"]
 
+            st.write("Sentiment Distribution TextBlob")
+            sentiment_distributiontx = df_reviews_with_keywords["TextBlob Sentiment Level"].value_counts().reset_index()
+            sentiment_distributiontx.columns = ["Sentiment Level","Count"]
+
             fig, ax = plt.subplots()
             ax.bar(sentiment_distribution["Sentiment Level"], sentiment_distribution["Count"], color=['red', 'orange', 'yellow', 'green', 'blue'])
             ax.set_xlabel("Sentiment Level")
