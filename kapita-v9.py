@@ -290,11 +290,13 @@ def main():
             st.write(f"Average TextBlob Sentiment Score: {avg_textblob_sentiment_score:.2f}")
             st.write(f"Average VADER Sentiment Score: {avg_vader_sentiment_score:.2f}")
 
-            # Data visualization
+            # Data visualization For Vader
             st.write("Sentiment Distribution with VADER")
             sentiment_distribution = df_reviews_with_keywords["VADER Sentiment Level"].value_counts().reset_index()
             sentiment_distribution.columns = ["Sentiment Level", "Count"]
 
+            
+            # Data Visualization For TextBlob
             st.write("Sentiment Distribution TextBlob")
             sentiment_distributiontx = df_reviews_with_keywords["TextBlob Sentiment Level"].value_counts().reset_index()
             sentiment_distributiontx.columns = ["Sentiment Level","Count"]
