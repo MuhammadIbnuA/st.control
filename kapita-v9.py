@@ -290,23 +290,29 @@ def main():
             st.write(f"Average TextBlob Sentiment Score: {avg_textblob_sentiment_score:.2f}")
             st.write(f"Average VADER Sentiment Score: {avg_vader_sentiment_score:.2f}")
 
-            # Data visualization For Vader
+            # Data Visualization for VADER
             st.write("Sentiment Distribution with VADER")
-            sentiment_distribution = df_reviews_with_keywords["VADER Sentiment Level"].value_counts().reset_index()
-            sentiment_distribution.columns = ["Sentiment Level", "Count"]
+            vader_sentiment_distribution = df_reviews_with_keywords["VADER Sentiment Level"].value_counts().reset_index()
+            vader_sentiment_distribution.columns = ["Sentiment Level", "Count"]
 
-            
-            # Data Visualization For TextBlob
-            st.write("Sentiment Distribution TextBlob")
-            sentiment_distributiontx = df_reviews_with_keywords["TextBlob Sentiment Level"].value_counts().reset_index()
-            sentiment_distributiontx.columns = ["Sentiment Level","Count"]
+            fig_vader, ax_vader = plt.subplots()
+            ax_vader.bar(vader_sentiment_distribution["Sentiment Level"], vader_sentiment_distribution["Count"], color=['red', 'orange', 'yellow', 'green', 'blue'])
+            ax_vader.set_xlabel("Sentiment Level")
+            ax_vader.set_ylabel("Count")
+            ax_vader.set_title("VADER Sentiment Level Distribution")
+            st.pyplot(fig_vader)
 
-            fig, ax = plt.subplots()
-            ax.bar(sentiment_distribution["Sentiment Level"], sentiment_distribution["Count"], color=['red', 'orange', 'yellow', 'green', 'blue'])
-            ax.set_xlabel("Sentiment Level")
-            ax.set_ylabel("Count")
-            ax.set_title("Sentiment Level Distribution")
-            st.pyplot(fig)
+            # Data Visualization for TextBlob
+            st.write("Sentiment Distribution with TextBlob")
+            textblob_sentiment_distribution = df_reviews_with_keywords["TextBlob Sentiment Level"].value_counts().reset_index()
+            textblob_sentiment_distribution.columns = ["Sentiment Level", "Count"]
+
+            fig_textblob, ax_textblob = plt.subplots()
+            ax_textblob.bar(textblob_sentiment_distribution["Sentiment Level"], textblob_sentiment_distribution["Count"], color=['red', 'orange', 'yellow', 'green', 'blue'])
+            ax_textblob.set_xlabel("Sentiment Level")
+            ax_textblob.set_ylabel("Count")
+            ax_textblob.set_title("TextBlob Sentiment Level Distribution")
+            st.pyplot(fig_textblob)
 
     # Footer content
     footer = """
