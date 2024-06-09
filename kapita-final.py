@@ -323,6 +323,7 @@ def main():
         st.write(f"Total reviews fetched: {len(reviews)}")
 
         st.write("### Sek moas, lagi proses")
+        st.image("bendot.jpeg")
 
         analyze_and_visualize_category(reviews, "Performance", performance_keywords, threshold, similarity_measure)
         analyze_and_visualize_category(reviews, "Information", information_keywords, threshold, similarity_measure)
